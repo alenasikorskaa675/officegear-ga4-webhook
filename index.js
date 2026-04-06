@@ -13,6 +13,8 @@ const processedOrders = new Set();
 
 app.post('/webhooks/bc-order-paid', async (req, res) => {
   try {
+    console.log('Incoming webhook:', JSON.stringify(req.body));
+
     const { scope, data } = req.body;
 
     if (scope !== 'store/order/statusUpdated') {
@@ -22,7 +24,10 @@ app.post('/webhooks/bc-order-paid', async (req, res) => {
     const orderId = data.id;
     const newStatus = data.status.id;
 
+    console.log(`Order #${orderId}, status: ${newStatus}`);
+
     if (newStatus !== PAID_STATUS) {
+      console.log(`Skipping - status ${newStatus} is not ${PAID_STATUS}`);
       return res.sendStatus(200);
     }
 
