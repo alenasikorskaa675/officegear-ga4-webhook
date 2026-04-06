@@ -22,7 +22,7 @@ app.post('/webhooks/bc-order-paid', async (req, res) => {
     }
 
     const orderId = data.id;
-    const newStatus = data.status.id;
+    const newStatus = data.status.new_status_id;
 
     console.log(`Order #${orderId}, status: ${newStatus}`);
 
