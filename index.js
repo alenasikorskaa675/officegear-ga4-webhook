@@ -65,10 +65,14 @@ app.post('/webhooks/bc-order-paid', async (req, res) => {
       price: parseFloat(item.base_price)
     }));
 
+    // Формируем корректный client_id для GA4
+    const rawId = order.customer_id || orderId;
+    const client_id = `${String(rawId).padStart(10, '0')}.${String(orderId).padStart(10, '0')}`;
+
     await axios.post(
       `https://www.google-analytics.com/mp/collect?measurement_id=${GA4_MEASUREMENT_ID}&api_secret=${GA4_API_SECRET}`,
       {
-        client_id: String(order.customer_id || orderId),
+        client_id: client_id,
         events: [{
           name: 'purchase',
           params: {
@@ -84,7 +88,7 @@ app.post('/webhooks/bc-order-paid', async (req, res) => {
     );
 
     processedOrders.add(orderId);
-    console.log(`✅ GA4 purchase sent for order #${orderId}`);
+    console.log(`✅ GA4 purchase sent for order #${orderId}, client_id: ${client_id}`);
     res.sendStatus(200);
 
   } catch (error) {
