@@ -58,11 +58,8 @@ app.post('/webhooks/bc-order-paid', async (req, res) => {
       }
     );
 
-    // Логируем первый товар чтобы увидеть все доступные поля
-    console.log('First item raw data:', JSON.stringify(itemsRes.data[0]));
-
     const items = itemsRes.data.map(item => ({
-      item_id: String(item.product_id),
+      item_id: `${item.product_id}_${item.variant_id}`,
       item_name: item.name,
       quantity: item.quantity,
       price: parseFloat(item.base_price)
