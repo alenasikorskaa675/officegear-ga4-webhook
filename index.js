@@ -58,6 +58,9 @@ app.post('/webhooks/bc-order-paid', async (req, res) => {
       }
     );
 
+    // Логируем первый товар чтобы увидеть все доступные поля
+    console.log('First item raw data:', JSON.stringify(itemsRes.data[0]));
+
     const items = itemsRes.data.map(item => ({
       item_id: String(item.product_id),
       item_name: item.name,
@@ -65,7 +68,6 @@ app.post('/webhooks/bc-order-paid', async (req, res) => {
       price: parseFloat(item.base_price)
     }));
 
-    // Формируем корректный client_id для GA4
     const rawId = order.customer_id || orderId;
     const client_id = `${String(rawId).padStart(10, '0')}.${String(orderId).padStart(10, '0')}`;
 
