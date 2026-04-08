@@ -11,6 +11,19 @@ const GA4_API_SECRET = 'yvk1vAdhTn6IVSweJ1wwgQ';
 const PAID_STATUS = 11;
 const processedOrders = new Set();
 
+// Хранилище: orderId → client_id
+const orderClientIds = new Map();
+
+// Endpoint для сохранения client_id с order-confirmation страницы
+app.post('/save-client', (req, res) => {
+  const { orderId, clientId } = req.body;
+  if (orderId && clientId) {
+    orderClientIds.set(String(orderId), clientId);
+    console.log(`💾 Saved client_id for order #${orderId}: ${clientId}`);
+  }
+  res.sendStatus(200);
+});
+
 app.post('/webhooks/bc-order-paid', async (req, res) => {
   try {
     console.log('Incoming webhook:', JSON.stringify(req.body));
@@ -65,8 +78,11 @@ app.post('/webhooks/bc-order-paid', async (req, res) => {
       price: parseFloat(item.base_price)
     }));
 
-    const rawId = order.customer_id || orderId;
-    const client_id = `${String(rawId).padStart(10, '0')}.${String(orderId).padStart(10, '0')}`;
+    // Берём реальный client_id если есть, иначе искусственный
+    const savedClientId = orderClientIds.get(String(orderId));
+    const client_id = savedClientId || `${String(order.customer_id || orderId).padStart(10, '0')}.${String(orderId).padStart(10, '0')}`;
+    
+    console.log(`Using client_id: ${client_id} (${savedClientId ? 'real' : 'generated'})`);
 
     await axios.post(
       `https://www.google-analytics.com/mp/collect?measurement_id=${GA4_MEASUREMENT_ID}&api_secret=${GA4_API_SECRET}`,
